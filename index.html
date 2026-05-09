@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pizza Hut — Order Now | Hot. Fresh. Delivered.</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --red-primary:    #CC0000;
+      --red-dark:       #990000;
+      --red-light:      #FF3333;
+      --gold:           #FFB800;
+      --gold-dark:      #E6A500;
+      --cream:          #FFF8F0;
+      --cream-dark:     #F0E8DC;
+      --charcoal:       #1A1A1A;
+      --charcoal-mid:   #2D2D2D;
+      --gray-text:      #6B6B6B;
+      --white:          #FFFFFF;
+
+      --font-display:   'Playfair Display', Georgia, serif;
+      --font-body:      'DM Sans', sans-serif;
+      --font-accent:    'Bebas Neue', sans-serif;
+
+      --radius-sm:      8px;
+      --radius-md:      16px;
+      --radius-lg:      24px;
+      --radius-pill:    999px;
+
+      --shadow-card:    0 4px 24px rgba(0,0,0,0.10);
+      --shadow-lift:    0 12px 40px rgba(204,0,0,0.20);
+      --shadow-heavy:   0 20px 60px rgba(0,0,0,0.30);
+
+      --transition:     0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-slow:0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-body); background-color: var(--charcoal); color: var(--cream); overflow-x: hidden; }
+    h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 900; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; border: none; font-family: inherit; }
+    img, svg { max-width: 100%; display: block; }
+    
+    .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease-out, transform 0.8s ease-out; }
+    .reveal.active { opacity: 1; transform: translateY(0); }
+
+    /* Keyframes */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(204,0,0,0.4); } 70% { box-shadow: 0 0 0 15px rgba(204,0,0,0); } 100% { box-shadow: 0 0 0 0 rgba(204,0,0,0); } }
+    @keyframes marqueeScroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    @keyframes spinSlow { from { transform: rotate(-12deg); } to { transform: rotate(348deg); } }
+    @keyframes bounceDown { 0%, 20%, 50%, 80%, 100% { transform: translateY(0); } 40% { transform: translateY(-15px); } 60% { transform: translateY(-7px); } }
+    @keyframes confettiFall { 0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; } 100% { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
+    @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+    @keyframes countdownPop { 0% { transform: scale(1); } 50% { transform: scale(1.1); color: var(--red-light); } 100% { transform: scale(1); } }
+    @keyframes loadSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* CSS PLACEHOLDER 1: Base Components */
+    .btn { display: inline-flex; align-items: center; justify-content: center; padding: 16px 32px; border-radius: var(--radius-pill); font-weight: 900; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; transition: var(--transition); text-align: center; }
+    .btn-primary { background: var(--red-primary); color: var(--white); box-shadow: 0 10px 25px rgba(204,0,0,0.5); animation: pulseGlow 2s infinite; }
+    .btn-primary:hover { background: var(--red-light); transform: translateY(-2px); box-shadow: 0 15px 35px rgba(204,0,0,0.6); }
+    .btn-secondary { background: transparent; color: var(--cream); border: 2px solid var(--cream); }
+    .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+    
+    #scroll-progress { position: fixed; top: 0; left: 0; height: 4px; background: var(--red-light); z-index: 1000; width: 0; transition: width 0.1s linear; }
+    /* CSS PLACEHOLDER 2: Specific Sections */
+    /* Loader */
+    #loader { position: fixed; inset: 0; background: var(--charcoal); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s ease; }
+    #loader .spinner { font-size: 64px; animation: loadSpin 2s linear infinite; margin-bottom: 16px; }
+    #loader h2 { color: var(--red-primary); font-family: var(--font-accent); font-size: 32px; letter-spacing: 2px; }
+    
+    /* Nav */
+    .navbar { position: fixed; top: 0; left: 0; width: 100%; height: 70px; z-index: 999; transition: background var(--transition); display: flex; align-items: center; }
+    .navbar.scrolled { background: rgba(26,26,26,0.95); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .nav-inner { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+    .nav-logo svg { height: 32px; fill: var(--red-primary); }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a { font-weight: 700; font-size: 14px; position: relative; text-transform: uppercase; letter-spacing: 1px; }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-links a::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 2px; background: var(--gold); transition: width var(--transition); }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-right { display: flex; gap: 24px; align-items: center; }
+    .cart-btn { background: none; border: none; color: var(--cream); position: relative; font-size: 24px; display: flex; align-items: center; }
+    .cart-badge { position: absolute; top: -8px; right: -12px; background: var(--red-primary); color: white; font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 12px; font-family: var(--font-body); }
+    .mobile-menu-btn { display: none; background: none; color: white; font-size: 24px; }
+    
+    @media (max-width: 768px) {
+      .navbar { height: 60px; }
+      .nav-links { display: none; }
+      .mobile-menu-btn { display: block; }
+      .nav-right .btn-primary { display: none; }
+    }
+
+    /* Hero */
+    .hero { height: 100vh; position: relative; display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden; background: var(--charcoal); }
+    .hero::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at center, rgba(204,0,0,0.2) 0%, transparent 60%); pointer-events: none; }
+    .hero::after { content: ''; position: absolute; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"); pointer-events: none; mix-blend-mode: overlay; }
+    .hero-content { position: relative; z-index: 10; max-width: 900px; padding: 0 24px; }
+    .hero h1 { font-size: clamp(48px, 8vw, 88px); line-height: 0.9; margin-bottom: 24px; color: var(--white); font-weight: 900; }
+    .hero h1 .brush { position: relative; display: inline-block; }
+    .hero h1 .brush::after { content: ''; position: absolute; bottom: 5px; left: -2%; width: 104%; height: 16px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 10' preserveAspectRatio='none'%3E%3Cpath d='M0 5 Q 50 10 100 2' stroke='%23CC0000' stroke-width='6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-size: 100% 100%; z-index: -1; }
+    .hero p { font-size: clamp(18px, 4vw, 22px); margin-bottom: 40px; color: var(--cream-dark); max-width: 600px; margin-inline: auto; line-height: 1.5; }
+    .hero-ctas { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    
+    .floating-badge { position: absolute; top: 120px; right: 10%; background: var(--gold); color: var(--red-primary); padding: 8px 16px; font-size: 12px; font-weight: 900; border-radius: var(--radius-pill); box-shadow: 0 10px 25px rgba(0,0,0,0.5); transform: rotate(-4deg); animation: spinSlow 10s linear infinite alternate; z-index: 20; text-transform: uppercase; letter-spacing: 0; }
+    @media (max-width: 768px) { .floating-badge { display: none; } }
+    
+    .scroll-indicator { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); animation: bounceDown 2s infinite; color: var(--cream-dark); font-size: 32px; z-index: 20; }
+
+    /* Ticker */
+    .ticker { background: var(--red-primary); border-top: 2px solid var(--gold); border-bottom: 2px solid var(--gold); overflow: hidden; white-space: nowrap; padding: 12px 0; }
+    .ticker-track { display: inline-flex; width: max-content; animation: marqueeScroll 25s linear infinite; }
+    .ticker-item { font-family: var(--font-body); font-size: 12px; font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase; margin-right: 48px; display: inline-flex; align-items: center; gap: 8px; color: var(--white); }
+
+    /* Menu */
+    .menu-section { padding: 80px 0; background: var(--charcoal-mid); }
+    .section-header { text-align: center; margin-bottom: 64px; }
+    .section-header h2 { font-size: clamp(32px, 5vw, 48px); position: relative; display: inline-block; font-style: italic; }
+    .section-header h2::after { content: ''; position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%); width: 60px; height: 4px; background: var(--red-primary); border-radius: 2px; }
+    
+    .menu-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; }
+    @media (max-width: 1024px) { .menu-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; } }
+    @media (max-width: 480px) { .menu-grid { grid-template-columns: 1fr; } }
+    
+    .menu-card { background: var(--charcoal); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow-card); transition: var(--transition); border: 1px solid rgba(255,255,255,0.05); }
+    .menu-card:hover { transform: scale(1.03); box-shadow: var(--shadow-heavy); }
+    .menu-img-wrap { height: 220px; background: linear-gradient(135deg, #FF6B00, #CC0000); position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .menu-img-wrap::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); background-size: 200% 100%; animation: shimmer 3s infinite linear; }
+    .menu-img-wrap .emoji { font-size: 80px; position: relative; z-index: 2; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5)); transition: transform var(--transition); }
+    .menu-card:hover .emoji { transform: scale(1.1) rotate(5deg); }
+    .menu-badge { position: absolute; top: 16px; left: 16px; background: rgba(255,255,255,0.1); color: var(--red-light); text-transform: uppercase; letter-spacing: -1px; font-size: 12px; font-weight: 900; padding: 4px 8px; border-radius: 4px; z-index: 3; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+    
+    .menu-content { padding: 24px; }
+    .menu-title { font-size: 20px; margin-bottom: 8px; color: var(--white); font-weight: 900; }
+    .menu-desc { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.5; margin-bottom: 16px; height: 42px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .menu-price { font-family: var(--font-accent); color: var(--gold); font-size: 28px; margin-bottom: 16px; letter-spacing: 1px; }
+    .btn-add { width: 100%; background: var(--red-primary); color: white; padding: 8px; border-radius: var(--radius-sm); font-weight: 900; text-transform: uppercase; font-size: 12px; transition: var(--transition); display: flex; justify-content: center; gap: 8px; align-items: center; }
+    .btn-add:hover { background: var(--red-light); transform: translateY(-2px); }
+
+    /* Flash Deal Countdown */
+    .flash-deal { padding: 80px 0; background: var(--charcoal-mid); position: relative; }
+    .flash-panel { background: radial-gradient(circle at top right, var(--red-dark), var(--charcoal)); border: 1px solid var(--red-primary); border-radius: var(--radius-lg); padding: 64px 40px; text-align: center; position: relative; box-shadow: 0 0 0 0 rgba(204,0,0,0.2); animation: pulsePanel 4s infinite, pulseGlow 4s infinite; }
+    @keyframes pulsePanel { 0% { border-color: var(--red-primary); } 50% { border-color: var(--gold); } 100% { border-color: var(--red-primary); } }
+    .flash-panel h2 { font-size: clamp(32px, 6vw, 56px); margin-bottom: 32px; text-shadow: 0 4px 20px rgba(0,0,0,0.5); font-weight: 900; text-transform: uppercase; letter-spacing: -1px; }
+    
+    .countdown { display: flex; justify-content: center; gap: 24px; margin-bottom: 40px; }
+    .cd-box { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-md); padding: 20px; min-width: 100px; backdrop-filter: blur(5px); }
+    .cd-val { font-family: var(--font-accent); font-size: 56px; color: var(--gold); line-height: 1; letter-spacing: 2px; }
+    .cd-lbl { font-size: 14px; text-transform: uppercase; color: var(--cream-dark); margin-top: 8px; font-weight: bold; }
+    @media (max-width: 480px) { .countdown { gap: 12px; } .cd-box { min-width: 70px; padding: 12px; } .cd-val { font-size: 36px; } }
+    
+    .btn-gold { background: var(--gold); color: var(--charcoal); padding: 16px 32px; font-size: 18px; border-radius: var(--radius-pill); font-weight: bold; transition: var(--transition); display: inline-block; box-shadow: 0 10px 30px rgba(255,184,0,0.3); }
+    .btn-gold:hover { background: var(--gold-dark); transform: scale(1.05); }
+
+    /* Trust Builders */
+    .trust-section { padding: 80px 0; background: var(--charcoal); border-top: 1px solid rgba(255,255,255,0.05); }
+    .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 48px; }
+    @media (max-width: 1024px) { .trust-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .trust-grid { grid-template-columns: 1fr; } }
+    
+    .trust-card { background: var(--charcoal-mid); border-radius: var(--radius-md); padding: 32px 24px; text-align: center; color: var(--white); box-shadow: var(--shadow-card); transition: transform var(--transition); border: 1px solid rgba(255,255,255,0.05); }
+    .trust-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-heavy); border-color: var(--gold); }
+    .trust-icon { width: 64px; height: 64px; background: rgba(204,0,0,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 24px; color: var(--white); }
+    .trust-card h3 { font-size: 16px; margin-bottom: 12px; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; font-weight: 900; font-family: var(--font-body); }
+    .trust-card p { font-size: 13px; color: rgba(255,255,255,0.6); }
+
+    /* Reviews */
+    .reviews-section { padding: 80px 0; background: var(--charcoal); overflow: hidden; border-top: 1px solid rgba(255,255,255,0.05); }
+    .carousel-wrap { position: relative; margin-top: 48px; }
+    .carousel { display: flex; gap: 24px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 24px 0; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
+    .carousel::-webkit-scrollbar { display: none; }
+    
+    .review-card { min-width: 300px; width: 300px; background: var(--charcoal-mid); color: var(--cream); padding: 24px; border-radius: var(--radius-md); scroll-snap-align: center; box-shadow: var(--shadow-card); flex-shrink: 0; border: 1px solid rgba(255,255,255,0.05); }
+    .stars { color: var(--gold); font-size: 20px; margin-bottom: 16px; letter-spacing: 2px; }
+    .review-text { font-size: 15px; font-style: italic; margin-bottom: 24px; line-height: 1.6; }
+    .reviewer { font-weight: bold; font-family: var(--font-display); }
+    .reviewer-meta { font-size: 12px; color: var(--gray-text); display: flex; align-items: center; gap: 4px; margin-top: 4px; }
+    .verified { color: #00A650; font-size: 14px; }
+
+    .carousel-nav { display: flex; justify-content: center; gap: 16px; margin-top: 24px; }
+    .nav-btn { width: 48px; height: 48px; border-radius: 50%; background: var(--charcoal); border: 1px solid rgba(255,255,255,0.2); color: var(--white); font-size: 20px; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
+    .nav-btn:hover { background: var(--red-primary); border-color: var(--red-primary); }
+
+    /* Location Finder */
+    .location-section { padding: 80px 0; background: var(--charcoal-mid); color: var(--cream); }
+    .search-box { max-width: 600px; margin: 0 auto 48px; display: flex; position: relative; }
+    .search-input { width: 100%; padding: 16px 24px; border-radius: var(--radius-pill); border: 1px solid rgba(255,255,255,0.1); background: var(--charcoal); color: var(--white); font-size: 16px; outline: none; font-family: var(--font-body); }
+    .search-btn { position: absolute; right: 8px; top: 8px; bottom: 8px; background: var(--red-primary); color: white; border: none; border-radius: var(--radius-pill); padding: 0 24px; font-weight: 900; text-transform: uppercase; transition: var(--transition); }
+    .search-btn:hover { background: var(--red-light); }
+    
+    .location-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 48px; }
+    @media (max-width: 768px) { .location-grid { grid-template-columns: 1fr; } }
+    .location-card { background: var(--charcoal); padding: 24px; border-radius: var(--radius-md); box-shadow: var(--shadow-card); border-top: 4px solid var(--red-primary); border-left: 1px solid rgba(255,255,255,0.05); border-right: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .location-card h3 { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
+    .location-meta { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 16px; display: flex; flex-direction: column; gap: 4px; }
+    .location-links { display: flex; justify-content: space-between; align-items: center; margin-top: 24px; }
+    .dir-link { color: var(--gold); font-weight: 900; font-size: 14px; text-transform: uppercase; }
+    .order-here-btn { background: var(--gold); color: var(--charcoal); padding: 8px 16px; border-radius: var(--radius-pill); font-size: 13px; font-weight: 900; text-transform: uppercase; }
+    .map-placeholder { width: 100%; height: 300px; background: var(--charcoal); border-radius: var(--radius-md); position: relative; overflow: hidden; background-image: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 40px 40px; display: flex; align-items: center; justify-content: center; }
+    .map-marker { width: 24px; height: 24px; background: var(--red-primary); border-radius: 50% 50% 50% 0; transform: rotate(-45deg); position: absolute; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); }
+    
+    /* App Promo */
+    .app-promo { padding: 80px 0; background: var(--red-primary); color: var(--white); overflow: hidden; }
+    .app-promo .container { display: flex; align-items: center; gap: 64px; }
+    @media (max-width: 768px) { .app-promo .container { flex-direction: column; text-align: center; gap: 40px; } }
+    .app-content { flex: 1; }
+    .app-content h2 { font-size: clamp(36px, 5vw, 56px); margin-bottom: 16px; font-weight: 900; }
+    .app-content p { font-size: 18px; color: rgba(255,255,255,0.8); margin-bottom: 32px; line-height: 1.6; max-width: 500px; }
+    @media (max-width: 768px) { .app-content p { margin: 0 auto 32px; } }
+    .store-btns { display: flex; gap: 16px; flex-wrap: wrap; }
+    @media (max-width: 768px) { .store-btns { justify-content: center; } }
+    .store-btn { background: var(--charcoal); color: var(--gold); padding: 12px 24px; border-radius: var(--radius-pill); font-weight: 900; text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; transition: var(--transition); letter-spacing: 1px; }
+    .store-btn:hover { background: var(--gold); color: var(--charcoal); }
+    
+    .app-mockup { flex: 1; display: flex; justify-content: center; position: relative; }
+    .phone-frame { width: 280px; height: 560px; background: var(--charcoal); border-radius: 40px; border: 12px solid #333; padding: 16px; position: relative; overflow: hidden; box-shadow: var(--shadow-heavy); transform: rotate(5deg); }
+    .phone-screen { background: var(--cream); width: 100%; height: 100%; border-radius: 20px; position: relative; border: 1px solid rgba(0,0,0,0.1); }
+    .phone-notch { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 120px; height: 24px; background: #333; border-radius: 0 0 12px 12px; z-index: 10; }
+    .mock-pizza { width: 180px; height: 180px; background: radial-gradient(circle, var(--gold) 50%, var(--red-primary) 100%); border-radius: 50%; margin: 60px auto 24px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border: 8px solid var(--gold-dark); position: relative; }
+    .mock-pizza::after { content: '🍕'; font-size: 80px; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+    .mock-text { height: 16px; background: #ddd; border-radius: 8px; margin: 0 24px 16px; }
+    .mock-text-short { height: 16px; background: #eee; border-radius: 8px; margin: 0 24px 32px; width: 60%; }
+    .mock-btn { background: var(--red-primary); height: 48px; border-radius: 24px; margin: 0 24px; position: absolute; bottom: 24px; left: 0; right: 0; }
+
+    /* Email Signup */
+    .email-section { padding: 80px 0; background: var(--charcoal-mid); text-align: center; position: relative; overflow: hidden; border-top: 1px solid rgba(255,255,255,0.05); }
+    .email-section.success { background: #00A650; }
+    .email-inner { position: relative; z-index: 10; max-width: 600px; margin: 0 auto; }
+    .email-section h2 { font-size: clamp(32px, 5vw, 48px); margin-bottom: 16px; }
+    .email-section p { font-size: 18px; color: var(--cream-dark); margin-bottom: 32px; }
+    .email-form { display: flex; gap: 8px; position: relative; }
+    @media (max-width: 480px) { .email-form { flex-direction: column; } }
+    .email-form input { flex: 1; padding: 16px 24px; border-radius: var(--radius-pill); border: none; outline: none; font-size: 16px; font-family: var(--font-body); }
+    .email-form button { background: var(--charcoal); color: var(--white); padding: 16px 32px; border-radius: var(--radius-pill); font-weight: bold; font-size: 16px; transition: var(--transition); white-space: nowrap; }
+    .email-form button:hover { background: var(--gold); color: var(--charcoal); }
+    .fine-print { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 16px; }
+    .confetti-piece { position: absolute; width: 10px; height: 10px; z-index: 5; animation: confettiFall 3s linear forwards; }
+    .success-msg { display: none; font-size: 24px; font-weight: bold; color: var(--white); background: rgba(0,0,0,0.2); padding: 24px; border-radius: var(--radius-md); }
+
+    /* Footer */
+    .footer { background: var(--charcoal); position: relative; border-top: 4px solid var(--red-primary); padding-top: 64px; }
+    .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 64px; }
+    @media (max-width: 1024px) { .footer-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; gap: 32px; } }
+    .footer-col h4 { font-size: 18px; margin-bottom: 24px; color: var(--white); }
+    .footer-col ul { list-style: none; }
+    .footer-col ul li { margin-bottom: 12px; }
+    .footer-col ul li a { color: var(--gray-text); font-size: 15px; transition: var(--transition); }
+    .footer-col ul li a:hover { color: var(--white); }
+    .social-icons { display: flex; gap: 16px; margin-top: 24px; }
+    .social-icons a { background: rgba(255,255,255,0.05); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: var(--transition); color: var(--white); }
+    .social-icons a:hover { background: var(--red-primary); transform: translateY(-3px); }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); padding: 24px 0; text-align: center; color: var(--gray-text); font-size: 14px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; align-items: center; }
+    @media (max-width: 768px) { .footer-bottom { flex-direction: column; } }
+
+    /* Modals & Overlays */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 10000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: var(--transition); }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    
+    .exit-modal { background: var(--charcoal-mid); border-radius: var(--radius-md); padding: 48px; max-width: 500px; text-align: center; position: relative; transform: translateY(40px); transition: var(--transition); border: 1px solid var(--red-primary); box-shadow: var(--shadow-heavy); margin: 24px; }
+    .modal-overlay.active .exit-modal { transform: translateY(0); }
+    .close-modal { position: absolute; top: 16px; right: 16px; background: none; color: var(--gray-text); font-size: 24px; transition: var(--transition); }
+    .close-modal:hover { color: var(--white); }
+    .exit-modal h3 { font-size: 32px; margin-bottom: 16px; color: var(--gold); }
+    .exit-modal p { color: var(--cream); margin-bottom: 24px; line-height: 1.5; }
+    .discount-code { background: rgba(204,0,0,0.2); border: 1px dashed var(--red-primary); color: var(--white); font-family: var(--font-accent); font-size: 32px; padding: 16px; letter-spacing: 2px; margin-bottom: 24px; border-radius: var(--radius-sm); }
+    
+    .cart-drawer { position: fixed; top: 0; right: -400px; width: 400px; height: 100vh; background: var(--charcoal); z-index: 10001; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: -10px 0 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; border-left: 1px solid rgba(255,255,255,0.05); }
+    @media (max-width: 480px) { .cart-drawer { width: 100%; right: -100%; } }
+    .cart-drawer.open { transform: translateX(-400px); }
+    @media (max-width: 480px) { .cart-drawer.open { transform: translateX(-100%); } }
+    
+    .cart-header { padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center; }
+    .cart-header h3 { font-size: 24px; }
+    .cart-items { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+    .cart-empty { text-align: center; color: var(--gray-text); margin-top: 40px; }
+    .cart-footer { padding: 24px; border-top: 1px solid rgba(255,255,255,0.1); background: var(--charcoal-mid); }
+    .cart-total { display: flex; justify-content: space-between; font-weight: bold; font-size: 20px; margin-bottom: 24px; font-family: var(--font-accent); color: var(--white); }
+    
+    /* Mobile Sticky CTA */
+    .mobile-sticky-cta { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--red-dark); padding: 12px 24px; z-index: 998; border-top: 1px solid rgba(255,255,255,0.1); display: none; }
+    @media (max-width: 768px) { .mobile-sticky-cta { display: block; } }
+    .mobile-sticky-cta .btn { width: 100%; padding: 12px; }
+  </style>
+</head>
+<body>
+  <!-- HTML PLACEHOLDER 1: Loader & Nav -->
+  <div id="scroll-progress"></div>
+  
+  <div id="loader">
+    <div class="spinner">🍕</div>
+    <h2>HEATING THINGS UP...</h2>
+  </div>
+
+  <nav class="navbar" id="navbar">
+    <div class="container nav-inner">
+      <a href="#" class="nav-logo" aria-label="Pizza Hut Home">
+        <svg viewBox="0 0 120 40">
+          <path d="M10 25 L60 5 L110 25" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <text x="12" y="38" font-family="'Playfair Display', serif" font-weight="900" font-size="22" fill="white">Pizza Hut</text>
+        </svg>
+      </a>
+      <div class="nav-links">
+        <a href="#menu">Menu</a>
+        <a href="#deals">Deals</a>
+        <a href="#locations">Locations</a>
+        <a href="#track">Track Order</a>
+        <a href="#about">About</a>
+      </div>
+      <div class="nav-right">
+        <button class="cart-btn" id="nav-cart-btn" aria-label="Open Cart">
+          🛒 <span class="cart-badge" id="nav-cart-badge">0</span>
+        </button>
+        <a href="#menu" class="btn btn-primary nav-order-btn">Order Now</a>
+        <button class="mobile-menu-btn" aria-label="Menu">☰</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HTML PLACEHOLDER 2: Hero & Ticker -->
+  <section class="hero">
+    <div class="floating-badge">Free Delivery Today Only!</div>
+    <div class="hero-content">
+      <h1>Pizza So Good, <br>It Should Be <span class="brush">Illegal.</span></h1>
+      <p>Hot. Fresh. Delivered in 30 minutes or it's on us.</p>
+      <div class="hero-ctas">
+        <a href="#menu" class="btn btn-primary" style="height: 56px; font-size: 18px;">🍕 Order Now</a>
+        <a href="#menu" class="btn btn-secondary" style="height: 56px; font-size: 18px;">Browse Menu &rarr;</a>
+      </div>
+    </div>
+    <div class="scroll-indicator">⌄</div>
+  </section>
+
+  <div class="ticker">
+    <div class="ticker-track" id="ticker-track">
+      <!-- Will be duplicated by JS for seamless scroll -->
+      <span class="ticker-content">
+        <span class="ticker-item">🍕 2,847 pizzas ordered today</span>
+        <span class="ticker-item">⭐ Rated #1 Pizza Delivery in the Philippines</span>
+        <span class="ticker-item">⏱ Average delivery: 28 minutes</span>
+        <span class="ticker-item">🔥 Flash Deal: 50% off all Large Pizzas before midnight</span>
+        <span class="ticker-item">🏆 25 million happy customers served</span>
+      </span>
+    </div>
+  </div>
+  <!-- HTML PLACEHOLDER 3: Menu & Countdown -->
+  <section class="menu-section" id="menu">
+    <div class="container reveal">
+      <div class="section-header">
+        <h2>What Everyone's Ordering</h2>
+      </div>
+      <div class="menu-grid">
+        <!-- Item 1 -->
+        <article class="menu-card">
+          <div class="menu-img-wrap">
+            <span class="menu-badge">🔥 Best Seller</span>
+            <span class="emoji">🍕</span>
+          </div>
+          <div class="menu-content">
+            <h3 class="menu-title">Pepperoni Lovers Pizza</h3>
+            <p class="menu-desc">Double pepperoni, extra mozzarella, signature tomato sauce on a classic pan crust.</p>
+            <div class="menu-price">₱699</div>
+            <button class="btn-add" aria-label="Add Pepperoni Lovers Pizza to Cart">Add to Cart <span>+</span></button>
+          </div>
+        </article>
+        <!-- Item 2 -->
+        <article class="menu-card">
+          <div class="menu-img-wrap" style="background: linear-gradient(135deg, #FF7B00, #990000);">
+            <span class="menu-badge">❤️ Fan Fave</span>
+            <span class="emoji">🍗</span>
+          </div>
+          <div class="menu-content">
+            <h3 class="menu-title">BBQ Chicken Supreme</h3>
+            <p class="menu-desc">Grilled chicken, red onions, bacon, and sweet BBQ sauce drizzle.</p>
+            <div class="menu-price">₱749</div>
+            <button class="btn-add" aria-label="Add BBQ Chicken Supreme to Cart">Add to Cart <span>+</span></button>
+          </div>
+        </article>
+        <!-- Item 3 -->
+        <article class="menu-card">
+          <div class="menu-img-wrap" style="background: linear-gradient(135deg, #00A650, #005020);">
+            <span class="menu-badge">⚡ New</span>
+            <span class="emoji">🧀</span>
+          </div>
+          <div class="menu-content">
+            <h3 class="menu-title">Stuffed Crust Margherita</h3>
+            <p class="menu-desc">Fresh basil, roasted tomatoes, mozzarella, and our famous cheese-stuffed crust.</p>
+            <div class="menu-price">₱649</div>
+            <button class="btn-add" aria-label="Add Stuffed Crust Margherita to Cart">Add to Cart <span>+</span></button>
+          </div>
+        </article>
+        <!-- Item 4 -->
+        <article class="menu-card">
+          <div class="menu-img-wrap">
+            <span class="menu-badge">🔥 Best Seller</span>
+            <span class="emoji">🍯</span>
+          </div>
+          <div class="menu-content">
+            <h3 class="menu-title">Honey Garlic Wings (12pcs)</h3>
+            <p class="menu-desc">Crispy baked wings coated in our signature sweet and savory honey garlic glaze.</p>
+            <div class="menu-price">₱449</div>
+            <button class="btn-add" aria-label="Add Honey Garlic Wings to Cart">Add to Cart <span>+</span></button>
+          </div>
+        </article>
+        <!-- Item 5 -->
+        <article class="menu-card">
+          <div class="menu-img-wrap" style="background: linear-gradient(135deg, #FFC107, #FF5722);">
+            <span class="menu-badge">❤️ Fan Fave</span>
+            <span class="emoji">🍝</span>
+          </div>
+          <div class="menu-content">
+            <h3 class="menu-title">Cheesy Overload Pasta</h3>
+            <p class="menu-desc">Penne pasta baked with rich meat sauce and topped with a three-cheese blend.</p>
+            <div class="menu-price">₱299</div>
+            <button class="btn-add" aria-label="Add Cheesy Overload Pasta to Cart">Add to Cart <span>+</span></button>
+          </div>
+        </article>
+        <!-- Item 6 -->
+        <article class="menu-card">
+          <div class="menu-img-wrap" style="background: linear-gradient(135deg, #9C27B0, #4A148C);">
+            <span class="menu-badge">⚡ Limited</span>
+            <span class="emoji">🥤</span>
+          </div>
+          <div class="menu-content">
+            <h3 class="menu-title">Mega Deal Bundle</h3>
+            <p class="menu-desc">1 Large Pizza, 1 Pasta, 6pcs Wings, and a 1.5L drink. Perfect for sharing!</p>
+            <div class="menu-price">₱999</div>
+            <button class="btn-add" aria-label="Add Mega Deal Bundle to Cart">Add to Cart <span>+</span></button>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="flash-deal" id="deals">
+    <div class="container reveal">
+      <div class="flash-panel">
+        <h2>Today Only: 50% Off All Large Pizzas</h2>
+        <div class="countdown">
+          <div class="cd-box"><div class="cd-val" id="cd-hours">00</div><div class="cd-lbl">Hours</div></div>
+          <div class="cd-box"><div class="cd-val" id="cd-mins">00</div><div class="cd-lbl">Mins</div></div>
+          <div class="cd-box"><div class="cd-val" id="cd-secs">00</div><div class="cd-lbl">Secs</div></div>
+        </div>
+        <a href="#menu" class="btn-gold">Grab This Deal &rarr;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- HTML PLACEHOLDER 4: Trust & Reviews -->
+  <section class="trust-section" id="about">
+    <div class="container reveal">
+      <div class="section-header">
+        <h2>Why 25 Million Families Choose Us</h2>
+      </div>
+      <div class="trust-grid">
+        <div class="trust-card">
+          <div class="trust-icon">🚀</div>
+          <h3>30-Min Delivery</h3>
+          <p>Late? It's free. We guarantee hot pizza in 30 minutes or your money back.</p>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon">🌶️</div>
+          <h3>Made Fresh Daily</h3>
+          <p>No freezers. Just fresh dough prepared every single morning.</p>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon">🛡️</div>
+          <h3>Safe & Hygienic</h3>
+          <p>Certified clean kitchens with regular audits to ensure your safety.</p>
+        </div>
+        <div class="trust-card">
+          <div class="trust-icon">⭐</div>
+          <h3>4.8 Star Rating</h3>
+          <p>Consistently loved by our customers. Read reviews from 500K+ loyal fans.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reviews-section">
+    <div class="container reveal">
+      <div class="section-header">
+        <h2>Real People. Real Cravings.</h2>
+      </div>
+      <div class="carousel-wrap">
+        <div class="carousel" id="review-carousel">
+          <div class="review-card">
+            <div class="stars">★★★★★</div>
+            <p class="review-text">"Best pizza I've ever had delivered. Still hot after 25 minutes!"</p>
+            <div class="reviewer">Maria S.</div>
+            <div class="reviewer-meta"><span class="verified">✔</span> Verified · Quezon City</div>
+          </div>
+          <div class="review-card">
+            <div class="stars">★★★★★</div>
+            <p class="review-text">"The stuffed crust is absolutely addictive. We order every Friday now."</p>
+            <div class="reviewer">James T.</div>
+            <div class="reviewer-meta"><span class="verified">✔</span> Verified · Makati</div>
+          </div>
+          <div class="review-card">
+            <div class="stars">★★★★★</div>
+            <p class="review-text">"Mega Bundle is insane value. Fed the whole family for under ₱1,000!"</p>
+            <div class="reviewer">Lena R.</div>
+            <div class="reviewer-meta"><span class="verified">✔</span> Verified · Cebu</div>
+          </div>
+          <div class="review-card">
+            <div class="stars">★★★★★</div>
+            <p class="review-text">"Fastest delivery in the city. Wings were crispy and perfect."</p>
+            <div class="reviewer">Carlo M.</div>
+            <div class="reviewer-meta"><span class="verified">✔</span> Verified · BGC</div>
+          </div>
+          <div class="review-card">
+            <div class="stars">★★★★★</div>
+            <p class="review-text">"The app is easy, the food is fire. Pizza Hut never disappoints."</p>
+            <div class="reviewer">Ana B.</div>
+            <div class="reviewer-meta"><span class="verified">✔</span> Verified · Pasig</div>
+          </div>
+        </div>
+        <div class="carousel-nav">
+          <button class="nav-btn" id="prev-review" aria-label="Previous Review">←</button>
+          <button class="nav-btn" id="next-review" aria-label="Next Review">→</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HTML PLACEHOLDER 5: Location & App Promo -->
+  <section class="location-section" id="locations">
+    <div class="container reveal">
+      <div class="section-header">
+        <h2>Find Your Nearest Pizza Hut</h2>
+      </div>
+      <div class="search-box">
+        <input type="text" class="search-input" placeholder="Enter your city or barangay...">
+        <button class="search-btn">Search</button>
+      </div>
+      <div class="location-grid">
+        <div class="location-card">
+          <h3>Pizza Hut Trinoma</h3>
+          <div class="location-meta">
+            <span>📍 Quezon City</span>
+            <span>🕒 Open until 11 PM</span>
+            <span>⭐ 4.9</span>
+          </div>
+          <div class="location-links">
+            <a href="#" class="dir-link">Get Directions &rarr;</a>
+            <button class="order-here-btn">Order from Here</button>
+          </div>
+        </div>
+        <div class="location-card">
+          <h3>Pizza Hut SM Megamall</h3>
+          <div class="location-meta">
+            <span>📍 Mandaluyong</span>
+            <span>🕒 Open until 10 PM</span>
+            <span>⭐ 4.8</span>
+          </div>
+          <div class="location-links">
+            <a href="#" class="dir-link">Get Directions &rarr;</a>
+            <button class="order-here-btn">Order from Here</button>
+          </div>
+        </div>
+        <div class="location-card">
+          <h3>Pizza Hut BGC High Street</h3>
+          <div class="location-meta">
+            <span>📍 Taguig</span>
+            <span>🕒 Open until 12 AM</span>
+            <span>⭐ 4.7</span>
+          </div>
+          <div class="location-links">
+            <a href="#" class="dir-link">Get Directions &rarr;</a>
+            <button class="order-here-btn">Order from Here</button>
+          </div>
+        </div>
+      </div>
+      <div class="map-placeholder">
+        <div class="map-marker" style="top: 40%; left: 30%;"></div>
+        <div class="map-marker" style="top: 60%; left: 50%;"></div>
+        <div class="map-marker" style="top: 30%; left: 70%;"></div>
+        <span style="color: white; font-family: var(--font-body); font-weight: bold; position: relative; z-index: 10; background: var(--charcoal); padding: 4px 12px; border-radius: 4px;">Interactive Map Placeholder</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="app-promo">
+    <div class="container reveal">
+      <div class="app-content">
+        <h2>Order Faster. Earn Rewards.</h2>
+        <p>Download the Pizza Hut app and get ₱100 off your first order. Track your pizza from the oven to your doorstep in real time.</p>
+        <div class="store-btns">
+          <a href="#" class="store-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12c0-5.523-4.477-10-10-10z"/></svg> App Store
+          </a>
+          <a href="#" class="store-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M3.522 2.298c-.28.163-.522.505-.522 1.006v17.39c0 .503.243.844.522 1.008l.024.011 9.574-9.574v-.277L3.546 2.287l-.024.011zM13.682 12.4l3.056 3.055L20.8 13.14c1.155-.657 1.155-1.724 0-2.38l-4.06-2.316-3.06 3.056.002.9zM13.2 11.92l-9.14-9.141L12.592 7.63l.608.35L13.2 11.92zm0 .961l-.608 3.94-8.532 8.533 8.375-4.78.765-.436-.001-7.257z"/></svg> Google Play
+          </a>
+        </div>
+      </div>
+      <div class="app-mockup">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="mock-pizza"></div>
+            <div class="mock-text"></div>
+            <div class="mock-text"></div>
+            <div class="mock-text-short"></div>
+            <div class="mock-btn"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="email-section" id="email-section">
+    <div class="container reveal">
+      <div class="email-inner">
+        <h2 id="email-title">Join the Crust Club</h2>
+        <p id="email-desc">Be first to know about deals, new menu items, and exclusive member offers.</p>
+        <form class="email-form" id="email-form" onsubmit="return false;">
+          <input type="email" placeholder="Enter your email address" required id="email-input">
+          <button type="submit">Join Free</button>
+        </form>
+        <p class="fine-print" id="email-fine">No spam. Unsubscribe anytime. Pizza guaranteed.</p>
+        <div class="success-msg" id="email-success">You're in! 🎉 Check your inbox for a welcome surprise.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HTML PLACEHOLDER 6: Footer & Modals -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <svg viewBox="0 0 120 40" style="width:120px; margin-bottom: 16px;">
+            <path d="M10 25 L60 5 L110 25" stroke="#CC0000" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <text x="12" y="38" font-family="'Playfair Display', serif" font-weight="900" font-size="22" fill="white">Pizza Hut</text>
+          </svg>
+          <p style="color: var(--gray-text); font-size: 15px;">No one out-pizzas the Hut. Premium ingredients, hot deliveries, and the iconic taste you love.</p>
+          <div class="social-icons">
+            <a href="#" aria-label="Facebook">FB</a>
+            <a href="#" aria-label="Instagram">IG</a>
+            <a href="#" aria-label="Twitter">TW</a>
+            <a href="#" aria-label="TikTok">TK</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="#menu">Menu</a></li>
+            <li><a href="#deals">Deals</a></li>
+            <li><a href="#">Catering</a></li>
+            <li><a href="#">Franchise</a></li>
+            <li><a href="#">Careers</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Support</h4>
+          <ul>
+            <li><a href="#">Track Order</a></li>
+            <li><a href="#">FAQ</a></li>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Allergen Info</a></li>
+            <li><a href="#">Terms of Use</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact Us</h4>
+          <ul>
+            <li><a href="tel:8911-1111">📞 8911-1111</a></li>
+            <li><a href="mailto:hello@pizzahut.ph">✉️ hello@pizzahut.ph</a></li>
+            <li style="color:var(--gray-text); margin-top:16px;">Hours: 10:00 AM - 12:00 MN</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div>&copy; 2026 Pizza Hut International. All rights reserved.</div>
+        <div>Privacy Policy &middot; Terms of Use &middot; Cookie Settings</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile Sticky CTA -->
+  <div class="mobile-sticky-cta">
+    <a href="#menu" class="btn btn-primary">🍕 Order Now — Free Delivery</a>
+  </div>
+
+  <!-- Cart Drawer -->
+  <div class="modal-overlay" id="cart-overlay"></div>
+  <div class="cart-drawer" id="cart-drawer">
+    <div class="cart-header">
+      <h3>Your Cravings</h3>
+      <button class="close-modal" id="close-cart">&times;</button>
+    </div>
+    <div class="cart-items" id="cart-items">
+      <div class="cart-empty">Your cart is feeling a bit empty.<br>Let's add some pizza!</div>
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span>Subtotal</span>
+        <span style="color:var(--gold);">₱ 0.00</span>
+      </div>
+      <button class="btn btn-primary" style="width:100%;">Checkout Now</button>
+    </div>
+  </div>
+
+  <!-- Exit Intent Modal -->
+  <div class="modal-overlay" id="exit-overlay">
+    <div class="exit-modal">
+      <button class="close-modal" id="close-exit">&times;</button>
+      <h3>Wait! Don't leave hungry.</h3>
+      <p>Your pizza adventure is just getting started. Use this code in the next 5 minutes to get a free side with any large pizza.</p>
+      <div class="discount-code">STAYANDEAT</div>
+      <button class="btn btn-primary" id="claim-discount" style="width:100%;">Claim My Free Side</button>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // JS PLACEHOLDER 1
+      // --- MODULE: LOADER ---
+      setTimeout(() => {
+        const loader = document.getElementById('loader');
+        loader.style.opacity = '0';
+        setTimeout(() => loader.remove(), 500);
+      }, 1500);
+
+      // --- MODULE: NAVBAR & SCROLL PROGRESS ---
+      const navbar = document.getElementById('navbar');
+      const progressBar = document.getElementById('scroll-progress');
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 50) {
+          navbar.classList.add('scrolled');
+        } else {
+          navbar.classList.remove('scrolled');
+        }
+        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = (winScroll / height) * 100;
+        progressBar.style.width = scrolled + "%";
+      });
+
+      // --- MODULE: MARQUEE DUPLICATION ---
+      const tickerTrack = document.getElementById('ticker-track');
+      if (tickerTrack) {
+        const content = tickerTrack.innerHTML;
+        tickerTrack.innerHTML = content + content; // Duplicate for smooth looping
+      }
+      // JS PLACEHOLDER 2
+      // --- MODULE: COUNTDOWN TIMER ---
+      function updateTimer() {
+        const now = new Date();
+        const midnight = new Date();
+        midnight.setHours(24, 0, 0, 0); // Next midnight
+        const diff = midnight - now;
+
+        const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const m = Math.floor((diff / 1000 / 60) % 60);
+        const s = Math.floor((diff / 1000) % 60);
+
+        const hEl = document.getElementById('cd-hours');
+        const mEl = document.getElementById('cd-mins');
+        const sEl = document.getElementById('cd-secs');
+
+        if(hEl && mEl && sEl) {
+          const oldS = sEl.innerText;
+          hEl.innerText = h.toString().padStart(2, '0');
+          mEl.innerText = m.toString().padStart(2, '0');
+          sEl.innerText = s.toString().padStart(2, '0');
+
+          if(oldS !== s.toString().padStart(2, '0')){
+             sEl.style.animation = 'none';
+             sEl.offsetHeight; /* trigger reflow */
+             sEl.style.animation = 'countdownPop 0.3s ease';
+          }
+        }
+      }
+      setInterval(updateTimer, 1000);
+      updateTimer();
+
+      // --- MODULE: CART ---
+      let cartCount = 0;
+      const cartBadge = document.getElementById('nav-cart-badge');
+      const addBtns = document.querySelectorAll('.btn-add');
+      
+      addBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          cartCount++;
+          cartBadge.innerText = cartCount;
+          cartBadge.style.animation = 'none';
+          cartBadge.offsetHeight; // reflow
+          cartBadge.style.animation = 'countdownPop 0.3s ease';
+          
+          // Button feedback
+          const originalText = btn.innerHTML;
+          btn.innerHTML = 'Added! ✓';
+          btn.style.background = 'var(--gold)';
+          btn.style.color = 'var(--charcoal)';
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = '';
+            btn.style.color = '';
+          }, 1500);
+        });
+      });
+
+      // JS PLACEHOLDER 3
+      // --- MODULE: SCROLL REVEAL ---
+      const reveals = document.querySelectorAll('.reveal');
+      const revealOptions = { threshold: 0.1, rootMargin: "0px 0px -50px 0px" };
+      const revealObserver = new IntersectionObserver(function(entries, observer) {
+        entries.forEach(entry => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('active');
+          observer.unobserve(entry.target);
+        });
+      }, revealOptions);
+      reveals.forEach(reveal => revealObserver.observe(reveal));
+
+      // --- MODULE: REVIEW CAROUSEL ---
+      const carousel = document.getElementById('review-carousel');
+      const prevBtn = document.getElementById('prev-review');
+      const nextBtn = document.getElementById('next-review');
+      
+      if(carousel && prevBtn && nextBtn) {
+        const scrollAmount = 324; // Card width + gap
+        prevBtn.addEventListener('click', () => carousel.scrollBy({ left: -scrollAmount, behavior: 'smooth' }));
+        nextBtn.addEventListener('click', () => carousel.scrollBy({ left: scrollAmount, behavior: 'smooth' }));
+      }
+
+      // JS PLACEHOLDER 4
+      // --- MODULE: EMAIL SIGNUP & CONFETTI ---
+      const emailForm = document.getElementById('email-form');
+      const emailSection = document.getElementById('email-section');
+      
+      if(emailForm) {
+        emailForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          // Hide elements
+          emailForm.style.display = 'none';
+          document.getElementById('email-title').style.display = 'none';
+          document.getElementById('email-desc').style.display = 'none';
+          document.getElementById('email-fine').style.display = 'none';
+          
+          // Show success
+          emailSection.classList.add('success');
+          document.getElementById('email-success').style.display = 'block';
+          
+          // Confetti
+          const colors = ['#FFB800', '#CC0000', '#FFFFFF'];
+          for(let i=0; i<50; i++) {
+            const conf = document.createElement('div');
+            conf.classList.add('confetti-piece');
+            conf.style.left = Math.random() * 100 + 'vw';
+            conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            conf.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            conf.style.animationDelay = (Math.random() * 0.5) + 's';
+            emailSection.appendChild(conf);
+          }
+        });
+      }
+
+
+      // --- MODULE: CART DRAWER ---
+      const cartBtn = document.getElementById('nav-cart-btn');
+      const cartDrawer = document.getElementById('cart-drawer');
+      const cartOverlay = document.getElementById('cart-overlay');
+      const closeCartBtn = document.getElementById('close-cart');
+      const cartItemsContainer = document.getElementById('cart-items');
+      
+      function openCart() {
+        cartDrawer.classList.add('open');
+        cartOverlay.classList.add('active');
+        if(cartCount > 0 && cartItemsContainer.querySelector('.cart-empty')) {
+          cartItemsContainer.innerHTML = '<div style="background:rgba(255,255,255,0.05); padding:16px; border-radius:8px; display:flex; justify-content:space-between;"><span>Delicious Items x' + cartCount + '</span><span>Pending</span></div>';
+          document.querySelector('.cart-total span:last-child').innerText = '₱ ' + (cartCount * 699).toFixed(2);
+        }
+      }
+      function closeCart() {
+        cartDrawer.classList.remove('open');
+        cartOverlay.classList.remove('active');
+      }
+      
+      if(cartBtn) cartBtn.addEventListener('click', openCart);
+      if(closeCartBtn) closeCartBtn.addEventListener('click', closeCart);
+      if(cartOverlay) cartOverlay.addEventListener('click', closeCart);
+
+      // --- MODULE: EXIT INTENT ---
+      let exitModalShown = false;
+      const exitOverlay = document.getElementById('exit-overlay');
+      const closeExitBtn = document.getElementById('close-exit');
+      const claimDiscountBtn = document.getElementById('claim-discount');
+      
+      document.addEventListener('mouseleave', (e) => {
+        if(e.clientY < 0 && !exitModalShown && window.innerWidth > 768) {
+          exitOverlay.classList.add('active');
+          exitModalShown = true;
+        }
+      });
+      
+      function closeExitModal() { exitOverlay.classList.remove('active'); }
+      if(closeExitBtn) closeExitBtn.addEventListener('click', closeExitModal);
+      if(claimDiscountBtn) claimDiscountBtn.addEventListener('click', () => { closeExitModal(); window.location.hash = 'menu'; });
+      if(exitOverlay) exitOverlay.addEventListener('click', (e) => { if(e.target === exitOverlay) closeExitModal(); });
+    });
+  </script>
+</body>
+</html>
